@@ -1,29 +1,27 @@
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
 
+// Sending a request
+// echo -n "Placeholder request" | nc -v localhost 9092 | hexdump -C
 public class Main {
+    private static final int PORT = 9092;
+
     public static void main(String[] args) {
-        ServerSocket serverSocket = null;
-        Socket clientSocket = null;
-        int port = 9092;
-        try {
-            serverSocket = new ServerSocket(port);
+        try (final var serverSocket = new ServerSocket(PORT)) {
             // Since the tester restarts your program quite often, setting SO_REUSEADDR
             // ensures that we don't run into 'Address already in use' errors
             serverSocket.setReuseAddress(true);
-            // Wait for connection from client.
-            clientSocket = serverSocket.accept();
-        } catch (IOException e) {
-            System.out.println("IOException: " + e.getMessage());
-        } finally {
-            try {
-                if (clientSocket != null) {
-                    clientSocket.close();
-                }
-            } catch (IOException e) {
-                System.out.println("IOException: " + e.getMessage());
-            }
+
+            final var clientSocket = serverSocket.accept();
+
+            final var outputStream = clientSocket.getOutputStream();
+            outputStream.write(new byte[]{0, 0, 0, 0});
+            outputStream.write(new byte[]{0, 0, 0, 7});
+            outputStream.flush();
+            Thread.sleep(100);
+
+        } catch (IOException | InterruptedException e) {
+            System.err.println("IOException: " + e.getMessage());
         }
     }
 }
