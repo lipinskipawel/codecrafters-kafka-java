@@ -21,7 +21,7 @@ public final class RequestParser {
             return request()
                 .messageSize(slice(bytes, 0, 4))
                 .requestApiKey(slice(bytes, 4, 6))
-                .requestApiVersion(slice(bytes, 6, 8))
+                .requestApiVersion(readShort(slice(bytes, 6, 8)))
                 .correlationId(slice(bytes, 8, 12))
                 .build();
         } catch (IOException e) {
@@ -38,5 +38,9 @@ public final class RequestParser {
         byteBuffer.get(slice);
 
         return slice;
+    }
+
+    public short readShort(byte[] bytes) {
+        return (short) (bytes[0] << 8 | (bytes[1] & 0xFF));
     }
 }

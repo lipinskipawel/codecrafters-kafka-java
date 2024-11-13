@@ -21,6 +21,22 @@ public class Main {
             final var requestParser = new RequestParser();
             final var request = requestParser.parseRequest(clientSocket.getInputStream());
 
+            if (request.requestApiVersion() < 0 || request.requestApiVersion() > 4) {
+                final var response = response()
+                    .messageSize(new byte[]{0, 0, 0, 0})
+                    .correlationId(request.correlationId())
+                    .errorCode(new byte[]{0, 35})
+                    .build();
+
+                final var outputStream = clientSocket.getOutputStream();
+                outputStream.write(response.messageSize());
+                outputStream.write(response.correlationId());
+                outputStream.write(response.errorCode());
+                outputStream.flush();
+                Thread.sleep(100);
+                return;
+            }
+
             final var response = response()
                 .messageSize(request.messageSize())
                 .correlationId(request.correlationId())

@@ -2,12 +2,14 @@ package protocol;
 
 public record Response(
     byte[] messageSize, // 4b
-    byte[] correlationId // 4b
+    byte[] correlationId, // 4b
+    byte[] errorCode
 ) {
 
     public static class Builder {
         private byte[] messageSize;
         private byte[] correlationId;
+        private byte[] errorCode;
 
         private Builder() {
         }
@@ -26,8 +28,13 @@ public record Response(
             return this;
         }
 
+        public Builder errorCode(byte[] errorCode) {
+            this.errorCode = errorCode;
+            return this;
+        }
+
         public Response build() {
-            return new Response(messageSize, correlationId);
+            return new Response(messageSize, correlationId, errorCode);
         }
     }
 }
