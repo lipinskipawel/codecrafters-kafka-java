@@ -1,8 +1,12 @@
+import protocol.ApiKeys;
+import protocol.ApiKeys.ApiKey;
 import protocol.RequestParser;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.List;
 
+import static protocol.Response.Builder.errorResponse;
 import static protocol.Response.Builder.response;
 
 // Sending a request
@@ -22,29 +26,29 @@ public class Main {
             final var request = requestParser.parseRequest(clientSocket.getInputStream());
 
             if (request.requestApiVersion() < 0 || request.requestApiVersion() > 4) {
-                final var response = response()
-                    .messageSize(new byte[]{0, 0, 0, 0})
-                    .correlationId(request.correlationId())
-                    .errorCode(new byte[]{0, 35})
-                    .build();
+                final var response = errorResponse(request.correlationId(), new byte[]{0, 35});
 
                 final var outputStream = clientSocket.getOutputStream();
-                outputStream.write(response.messageSize());
-                outputStream.write(response.correlationId());
-                outputStream.write(response.errorCode());
+                outputStream.write(response);
                 outputStream.flush();
                 Thread.sleep(100);
                 return;
             }
-
             final var response = response()
-                .messageSize(request.messageSize())
                 .correlationId(request.correlationId())
+                .errorCode(new byte[]{0, 0})
+                .apiKeys(new ApiKeys(List.of(
+                    new ApiKey(
+                        new byte[]{0, 18},
+                        new byte[]{0, 3},
+                        new byte[]{0, 4}
+                    )
+                )))
+                .throttleTimeMs(new byte[]{0, 0, 0, 0})
                 .build();
 
             final var outputStream = clientSocket.getOutputStream();
-            outputStream.write(response.messageSize());
-            outputStream.write(response.correlationId());
+            outputStream.write(response.toByteArray());
             outputStream.flush();
             Thread.sleep(100);
 
