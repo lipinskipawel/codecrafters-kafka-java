@@ -1,22 +1,22 @@
 package protocol;
 
-public record Request(
+public record ApiVersionsRequest(
     byte[] messageSize, // 4b
-    byte[] requestApiKey, // 2b
+    short requestApiKey, // 2b
     short requestApiVersion, //2b
     byte[] correlationId // 4b
-) {
+) implements RequestMessage {
 
     public static class Builder {
         private byte[] messageSize;
-        private byte[] requestApiKey;
+        private short requestApiKey;
         private short requestApiVersion;
         private byte[] correlationId;
 
         private Builder() {
         }
 
-        public static Builder request() {
+        public static Builder apiVersionsRequest() {
             return new Builder();
         }
 
@@ -25,7 +25,7 @@ public record Request(
             return this;
         }
 
-        public Builder requestApiKey(byte[] requestApiKey) {
+        public Builder requestApiKey(short requestApiKey) {
             this.requestApiKey = requestApiKey;
             return this;
         }
@@ -40,8 +40,8 @@ public record Request(
             return this;
         }
 
-        public Request build() {
-            return new Request(messageSize, requestApiKey, requestApiVersion, correlationId);
+        public ApiVersionsRequest build() {
+            return new ApiVersionsRequest(messageSize, requestApiKey, requestApiVersion, correlationId);
         }
     }
 }

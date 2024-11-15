@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public record Response(
+public record ApiVersionsResponse(
     byte[] messageSize, // 4b
     byte[] correlationId, // 4b
     byte[] errorCode, // 2b
@@ -39,7 +39,7 @@ public record Response(
         private Builder() {
         }
 
-        public static Builder response() {
+        public static Builder apiVersionsResponse() {
             return new Builder();
         }
 
@@ -71,13 +71,13 @@ public record Response(
             return this;
         }
 
-        public Response build() {
+        public ApiVersionsResponse build() {
             int msgSize = correlationId.length
                 + errorCode.length
                 + apiKeys.toByteArray().length
                 + throttleTimeMs.length
                 + 1; // tagBuffer
-            return new Response(
+            return new ApiVersionsResponse(
                 new byte[]{0, 0, 0, (byte) (msgSize)}, // fix when needed
                 correlationId,
                 errorCode,

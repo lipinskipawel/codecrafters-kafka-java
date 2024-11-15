@@ -1,16 +1,15 @@
-import protocol.ApiKeys;
-import protocol.ApiKeys.ApiKey;
+import handler.ApiVersionsHandler;
+import handler.DescribeTopicPartitionsHandler;
+import protocol.ApiVersionsRequest;
+import protocol.DescribeTopicPartitionsRequest;
 import protocol.RequestParser;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor;
-import static protocol.Response.Builder.errorResponse;
-import static protocol.Response.Builder.response;
 
 // Sending a request
 // echo -n "Placeholder request" | nc -v localhost 9092 | hexdump -C
@@ -40,35 +39,12 @@ public class Main {
                 final var requestParser = new RequestParser();
                 final var request = requestParser.parseRequest(socket.getInputStream());
 
-                if (request.requestApiVersion() < 0 || request.requestApiVersion() > 4) {
-                    final var response = errorResponse(request.correlationId(), new byte[]{0, 35});
-
-                    final var outputStream = socket.getOutputStream();
-                    outputStream.write(response);
-                    outputStream.flush();
-                    return;
+                switch (request) {
+                    case ApiVersionsRequest req -> new ApiVersionsHandler(socket).run(req);
+                    case DescribeTopicPartitionsRequest req -> new DescribeTopicPartitionsHandler(socket).run(req);
+                    default ->
+                        throw new RuntimeException("API_KEYS not supported yet [%s]".formatted(request.getClass()));
                 }
-                final var response = response()
-                    .correlationId(request.correlationId())
-                    .errorCode(new byte[]{0, 0})
-                    .apiKeys(new ApiKeys(List.of(
-                        new ApiKey(
-                            new byte[]{0, 18}, // https://kafka.apache.org/protocol.html#The_Messages_ApiVersions
-                            new byte[]{0, 3},
-                            new byte[]{0, 4}
-                        ),
-                        new ApiKey(
-                            new byte[]{0, 75}, // https://kafka.apache.org/protocol.html#The_Messages_DescribeTopicPartitions
-                            new byte[]{0, 0},
-                            new byte[]{0, 0}
-                        )
-                    )))
-                    .throttleTimeMs(new byte[]{0, 0, 0, 0})
-                    .build();
-
-                final var outputStream = socket.getOutputStream();
-                outputStream.write(response.toByteArray());
-                outputStream.flush();
             }
         } catch (IOException e) {
             throw new RuntimeException("Exception while handing connection: ", e);
