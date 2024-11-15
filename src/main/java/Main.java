@@ -53,9 +53,14 @@ public class Main {
                     .errorCode(new byte[]{0, 0})
                     .apiKeys(new ApiKeys(List.of(
                         new ApiKey(
-                            new byte[]{0, 18},
+                            new byte[]{0, 18}, // https://kafka.apache.org/protocol.html#The_Messages_ApiVersions
                             new byte[]{0, 3},
                             new byte[]{0, 4}
+                        ),
+                        new ApiKey(
+                            new byte[]{0, 75}, // https://kafka.apache.org/protocol.html#The_Messages_DescribeTopicPartitions
+                            new byte[]{0, 0},
+                            new byte[]{0, 0}
                         )
                     )))
                     .throttleTimeMs(new byte[]{0, 0, 0, 0})
